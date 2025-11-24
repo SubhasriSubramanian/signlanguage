@@ -12,6 +12,7 @@
             --background-color: #eef2f7; /* Light grey/blue background */
             --card-background: #ffffff;
             --highlight-color: #ffc107; /* Yellow/Orange for buttons */
+            --listening-color: #dc3545; /* Red for listening state */
         }
         
         body {
@@ -150,12 +151,17 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        #translate-btn:hover, #voice-input-btn:hover {
+        #voice-input-btn.listening {
+            background-color: var(--listening-color);
+            color: white;
+        }
+
+        #translate-btn:hover:not(:disabled), #voice-input-btn:hover:not(:disabled) {
             background-color: #e0a800;
             transform: translateY(-1px);
         }
         
-        #translate-btn:disabled {
+        #translate-btn:disabled, #voice-input-btn:disabled:not(.listening) {
             background-color: #ccc;
             cursor: not-allowed;
             box-shadow: none;
@@ -312,7 +318,7 @@
             <!-- IMAGE FLOW CHART ELEMENT - SOURCE IS NOW CORRECTED TO download.jpg -->
             <div class="flowchart-image">
                 
-                <img src="images/download.jpg" alt="System Architecture Flowchart" >
+                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart';" >
                 <p>Fig. 1. Flow Chart: Showing Input -> NLP -> Emotion Detection -> Animation Generator -> Output Flow</p>
             </div>
 
@@ -346,11 +352,12 @@
         <p>&copy; 2025 Sign Language Animation Project | Developed for Inclusive Technology | Student Project</p>
     </footer>
 
-    <!-- JavaScript for Simulation Logic -->
+    <!-- JavaScript for Simulation Logic and Web Speech API -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const textInput = document.getElementById('text-input');
             const translateBtn = document.getElementById('translate-btn');
+            const voiceInputBtn = document.getElementById('voice-input-btn');
             const animationDisplay = document.getElementById('animation-display');
             const emotionOutput = document.getElementById('emotion-output');
 
@@ -365,11 +372,32 @@
 
             const getSimulatedSign = (text) => {
                 const lowerText = text.toLowerCase();
-                if (lowerText.includes("happy") || lowerText.includes("joy")) return signDictionary.happy;
-                if (lowerText.includes("sad") || lowerText.includes("down")) return signDictionary.sad;
-                if (lowerText.includes("angry") || lowerText.includes("mad")) return signDictionary.angry;
-                if (lowerText.includes("hello") || lowerText.includes("hi")) return signDictionary.hello;
-                if (lowerText.includes("today") || lowerText.includes("now")) return signDictionary.today;
+                
+                // --- ENHANCED EMOTION KEYWORD LIST ---
+                
+                // Joyful Keywords
+                if (lowerText.includes("happy") || lowerText.includes("joy") || lowerText.includes("great") || lowerText.includes("excited")) {
+                    return signDictionary.happy;
+                }
+                
+                // Angry/Frustrated Keywords (FIX APPLIED HERE)
+                if (lowerText.includes("angry") || lowerText.includes("mad") || lowerText.includes("frustrated") || lowerText.includes("annoyed") || lowerText.includes("terrible")) {
+                    return signDictionary.angry;
+                }
+                
+                // Sad Keywords
+                if (lowerText.includes("sad") || lowerText.includes("down") || lowerText.includes("depressed") || lowerText.includes("unhappy") || lowerText.includes("disappointed")) {
+                    return signDictionary.sad;
+                }
+                
+                // Neutral/Other Keywords
+                if (lowerText.includes("hello") || lowerText.includes("hi") || lowerText.includes("greetings")) {
+                    return signDictionary.hello;
+                }
+                if (lowerText.includes("today") || lowerText.includes("now")) {
+                    return signDictionary.today;
+                }
+                
                 return signDictionary.default;
             };
 
@@ -378,25 +406,25 @@
                 p.textContent = message;
                 p.className = className;
                 animationDisplay.appendChild(p);
-                // Scroll to the bottom of the output
                 animationDisplay.scrollTop = animationDisplay.scrollHeight; 
             };
 
-            const translateText = async () => {
-                const inputText = textInput.value.trim();
-                if (!inputText) {
+            const translateText = async (inputText) => {
+                if (!inputText || inputText.trim() === "") {
                     animationDisplay.innerHTML = '<p style="color:red;">Please enter text or use voice input.</p>';
                     emotionOutput.textContent = 'Awaiting Input';
+                    translateBtn.disabled = false;
+                    voiceInputBtn.disabled = false;
                     return;
                 }
 
                 translateBtn.disabled = true;
+                voiceInputBtn.disabled = true;
                 animationDisplay.innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
                 emotionOutput.textContent = 'Processing...';
 
                 const { gloss, emotion, signs } = getSimulatedSign(inputText);
                 
-                // Clear any previous steps
                 animationDisplay.innerHTML = '';
                 
                 // --- 1. Input Module Acknowledgment ---
@@ -424,24 +452,69 @@
 
                 animationDisplay.innerHTML += finalMessage; 
                 translateBtn.disabled = false;
+                voiceInputBtn.disabled = false;
             };
 
-            // Event Listeners
-            translateBtn.addEventListener('click', translateText);
+            // Initialize Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition = null;
 
-            document.getElementById('voice-input-btn').addEventListener('click', () => {
-                // Simulate voice input
-                translateBtn.disabled = true;
-                animationDisplay.innerHTML = '<p style="color:#007bff; font-weight: bold;">🎤 Listening... (Simulated)</p>';
-                emotionOutput.textContent = 'Awaiting Transcription...';
-                
-                setTimeout(() => {
-                    const simulatedVoiceInput = "Hello, I am very happy today!";
-                    textInput.value = simulatedVoiceInput;
-                    animationDisplay.innerHTML = `<p style="color:var(--secondary-color); font-weight: 500;">✅ Voice Input Transcribed: "${simulatedVoiceInput.substring(0, 30)}..."</p>`;
-                    // Auto-start translation after simulated transcription
-                    translateText();
-                }, 1000); 
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    voiceInputBtn.classList.add('listening');
+                    voiceInputBtn.textContent = '🔴 Listening... Speak Now!';
+                    translateBtn.disabled = true;
+                    textInput.value = '';
+                };
+
+                recognition.onend = () => {
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
+                    // Re-enable translate button if text input is still needed
+                    if(textInput.value.trim() === "") translateBtn.disabled = false; 
+                };
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    textInput.value = speechResult;
+                    translateText(speechResult);
+                };
+
+                recognition.onerror = (event) => {
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
+                    animationDisplay.innerHTML = `<p style="color: red;">Speech Recognition Error: ${event.error}. Please ensure microphone access is granted.</p>`;
+                    translateBtn.disabled = false;
+                };
+
+                voiceInputBtn.addEventListener('click', () => {
+                    try {
+                        recognition.start();
+                        animationDisplay.innerHTML = '<p style="color:#007bff; font-weight: bold;">🔊 Waiting for speech...</p>';
+                    } catch (e) {
+                        // Avoid multiple concurrent recognition starts
+                        if (e.name !== 'InvalidStateError') {
+                             animationDisplay.innerHTML = `<p style="color: red;">Microphone Error: ${e.message}</p>`;
+                        }
+                    }
+                });
+
+            } else {
+                // Fallback if browser doesn't support Web Speech API
+                voiceInputBtn.disabled = true;
+                voiceInputBtn.textContent = 'Voice Not Supported';
+                animationDisplay.innerHTML = '<p style="color: red; margin-top: 10px;">Warning: Your browser does not support the Web Speech API. Only text input will work.</p>';
+            }
+
+            // Text Input Listener
+            translateBtn.addEventListener('click', () => {
+                translateText(textInput.value);
             });
         });
     </script>

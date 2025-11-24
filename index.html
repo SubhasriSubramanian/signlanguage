@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice/Text to Sign Language Animation System</title>
+    <style>
+        /* --- Design and Interface Styling --- */
+        :root {
+            --primary-color: #0056b3; /* Darker blue for emphasis */
+            --secondary-color: #28a745; /* Green for CTAs */
+            --background-color: #eef2f7; /* Light grey/blue background */
+            --card-background: #ffffff;
+            --highlight-color: #ffc107; /* Yellow/Orange for buttons */
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: #333;
+            line-height: 1.6;
+            transition: background-color 0.3s;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        nav a {
+            color: white;
+            margin: 0 20px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s, border-bottom 0.3s;
+            padding-bottom: 5px;
+        }
+
+        nav a:hover {
+            color: var(--highlight-color);
+            border-bottom: 2px solid var(--highlight-color);
+        }
+
+        main {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        .container {
+            background-color: var(--card-background);
+            padding: 40px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            scroll-margin-top: 100px; 
+            border: 1px solid #ddd;
+        }
+
+        h2, h3, h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        #hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 100%);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        #hero h2 {
+            font-size: 2.5rem;
+            color: #004d40;
+            border-bottom: none;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 25px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .cta-button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .input-area, .output-area {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #text-input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        #text-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        #translate-btn, #voice-input-btn {
+            background-color: var(--highlight-color);
+            color: #333;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 15px;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #translate-btn:hover, #voice-input-btn:hover {
+            background-color: #e0a800;
+            transform: translateY(-1px);
+        }
+        
+        #translate-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #animation-display {
+            min-height: 200px;
+            background-color: #e8f5e9; /* Light green background for output */
+            border: 3px solid var(--secondary-color);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            padding: 10px;
+            color: #004d40;
+            font-weight: 500;
+            text-align: center;
+            overflow-y: auto; /* Allows scrolling if steps overflow */
+        }
+
+        .emotion-feedback {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+        }
+        
+        .simulation-step {
+            color: #007bff;
+            margin-top: 5px;
+            font-style: italic;
+            border-bottom: 1px dashed #c0d8ff;
+            padding-bottom: 3px;
+            width: 90%;
+            max-width: 450px;
+        }
+        
+        .simulation-step:last-of-type {
+            border-bottom: none;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+            list-style: disc;
+        }
+
+        ol li, ul li {
+            margin-bottom: 10px;
+        }
+
+        .flowchart-image {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+        }
+        
+        .flowchart-image img {
+             max-width: 100%; 
+             height: auto; 
+             margin-bottom: 10px;
+             border-radius: 4px;
+             border: 1px solid #ccc;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #343a40;
+            color: white;
+            margin-top: 30px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🗣️ Text to Sign Language Image Animation System</h1>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#about">About Project</a>
+            <a href="#architecture">System Working</a>
+            <a href="#demo">Try Demo</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home">
+            <div id="hero">
+                <h2>Bridging Communication Gaps with Intelligent Translation</h2>
+                <p>We propose a Text to Sign Language Image Animation Generation System that facilitates inclusive communication by converting text or voice inputs into animated sign language representations. This system is enhanced with **multimodal interaction** and **emotion-aware feedback** for a natural, responsive, and empathetic experience.</p>
+                <a href="#demo" class="cta-button">Start Communication</a>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section id="demo" class="container">
+            <h2>Live Demonstration (Prototype)</h2>
+            <p>Convert your voice or text into expressive sign language animation! **Watch the output area to see the simulated system steps.**</p>
+            
+            <div class="input-area">
+                <textarea id="text-input" placeholder="Type your message here (e.g., 'I am very happy today!')" rows="4"></textarea>
+                <button id="voice-input-btn">🎤 Use Voice Input (Speech Recognition)</button>
+            </div>
+
+            <button id="translate-btn">Translate to Sign Language</button>
+
+            <div class="output-area">
+                <h3>Sign Language Animation Output</h3>
+                <div id="animation-display">
+                    <p style="color: #6c757d;">[Placeholder for Generated Sign Language Animation/Image Sequence. Input text to start the simulation!]</p>
+                </div>
+                <p class="emotion-feedback">Emotion Detected: <span id="emotion-output">Awaiting Input</span></p>
+            </div>
+            
+            <hr>
+            
+            <section id="reverse-feature">
+                <h3>Reverse Translation Supported</h3>
+                <p>The system also supports **reverse translation**—interpreting sign language inputs into voice and text outputs. This involves real-time gesture recognition using computer vision (e.g., MediaPipe, OpenPose) and emotion detection using facial expression and gesture dynamics.</p>
+            </section>
+        </section>
+
+        <!-- About Project Section -->
+        <section id="about" class="container">
+            <h2>📖 About the Project</h2>
+            <p>Communication between hearing and speech-impaired individuals and the general public remains a critical challenge due to language modality gaps. This project aims to address the social exclusion and communication barriers faced by the deaf and hard-of-hearing communities.</p>
+
+            <h3>🎯 Primary Objectives</h3>
+            <p>The main objective is to develop an intelligent, interactive system that translates written text into accurate, animated sign language representations, enhanced with emotional context and multimodal input capabilities.</p>
+            <ul>
+                <li>To develop a **Voice-to-Text Conversion** module (Speech Recognition) that accurately converts human speech into text using Automatic Speech Recognition (ASR).</li>
+                <li>To incorporate an **Emotion Detection System** analyzing vocal tone, pitch, or text sentiment.</li>
+                <li>To perform **Natural Language Processing (NLP)** to translate spoken text into **Sign Language Gloss** (e.g., Spoken: “I am going to the hospital.” → Gloss: “I GO HOSPITAL”).</li>
+                <li>To map Gloss to a **Sign Language Database** to generate a 3D/2D animation of a sign language gesture, applying facial expressions and movement speed based on detected emotion.</li>
+            </ul>
+        </section>
+
+        <!-- System Architecture Section -->
+        <section id="architecture" class="container">
+            <h2>⚙️ System Architecture & Working</h2>
+            <p>The system comprises several interlinked modules that handle input processing, translation, emotion detection, animation generation, and user feedback.</p>
+            
+            <!-- Image of Flow Chart for visualization -->
+            <div class="flowchart-image">
+                
+                <img src="https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart" alt="Flow Chart of the Sign Language Translation System" >
+                <p>Fig. 1. Flow Chart: Showing Input -> NLP -> Emotion Detection -> Animation Generator -> Output Flow</p>
+            </div>
+
+            <h3>Modular Architecture Components</h3>
+            <ol>
+                <li>
+                    <h4>Input Module</h4>
+                    <p>Handles multiple types of user input: **Text Input**, **Voice Input** (using Speech-to-Text engines like Google STT, Whisper), and optional **Visual Input** to capture facial expressions or gestures.</p>
+                </li>
+                <li>
+                    <h4>Natural Language Processing (NLP) Module</h4>
+                    <p>Processes text using **Tokenization & Parsing**, **Part-of-Speech (POS) Tagging**, and **Semantic Analysis**. Key function: **Sign Language Grammar Conversion** (translates text grammar into a sign-compatible structure, e.g., Subject-Object-Verb for ASL).</p>
+                </li>
+                <li>
+                    <h4>Emotion Detection Module</h4>
+                    <p>Extracts emotional context from **Text** (Sentiment analysis, e.g., BERT, RoBERTa), **Voice** (tone, pitch, tempo), or **Facial Expressions** (using computer vision like CNNs, OpenCV, or MediaPipe).</p>
+                </li>
+                <li>
+                    <h4>Animation Generator Module</h4>
+                    <p>Uses a **Sign Language Dictionary** and an **Animation Renderer** to create a sequence of signs. **Emotion Integration** modifies facial expression or body posture in animation to reflect the detected emotion.</p>
+                </li>
+                <li>
+                    <h4>Output Module</h4>
+                    <p>Delivers the final visual output as a **Sign Animation Display** with **Emotion-aware Enhancements** and allows for a **Feedback Loop** (confirm, correct, or repeat).</p>
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Sign Language Animation Project | Developed for Inclusive Technology | Student Project</p>
+    </footer>
+
+    <!-- JavaScript for Simulation Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textInput = document.getElementById('text-input');
+            const translateBtn = document.getElementById('translate-btn');
+            const animationDisplay = document.getElementById('animation-display');
+            const emotionOutput = document.getElementById('emotion-output');
+
+            const signDictionary = {
+                "happy": { gloss: "FEEL HAPPY", emotion: "Joyful 😄", signs: "FINGERSPELL H-A-P-P-Y, then SMILE and WIPE-CHEST (joyful motion)" },
+                "sad": { gloss: "FEEL SAD", emotion: "Sad 😢", signs: "FIST-DOWNWARD-MOTION, then LOWERED-BROW (slow motion)" },
+                "angry": { gloss: "FEEL ANGRY", emotion: "Angry 😠", signs: "CLAW-HAND-TO-FACE, then TENSE-BODY (fast and abrupt motion)" },
+                "hello": { gloss: "GREET", emotion: "Neutral 👤", signs: "OPEN-HAND-WAVE (standard speed)" },
+                "today": { gloss: "NOW DAY", emotion: "Neutral 👤", signs: "TWO-FINGERS-POINTING-DOWN-AND-ARCING" },
+                "default": { gloss: "MESSAGE UNKNOWN", emotion: "Neutral ❓", signs: "SHOULDER-SHRUG (Standard Speed)" }
+            };
+
+            const getSimulatedSign = (text) => {
+                const lowerText = text.toLowerCase();
+                if (lowerText.includes("happy") || lowerText.includes("joy")) return signDictionary.happy;
+                if (lowerText.includes("sad") || lowerText.includes("down")) return signDictionary.sad;
+                if (lowerText.includes("angry") || lowerText.includes("mad")) return signDictionary.angry;
+                if (lowerText.includes("hello") || lowerText.includes("hi")) return signDictionary.hello;
+                if (lowerText.includes("today") || lowerText.includes("now")) return signDictionary.today;
+                return signDictionary.default;
+            };
+
+            const updateDisplay = (message, className = '') => {
+                const p = document.createElement('p');
+                p.textContent = message;
+                p.className = className;
+                animationDisplay.appendChild(p);
+                // Scroll to the bottom of the output
+                animationDisplay.scrollTop = animationDisplay.scrollHeight; 
+            };
+
+            const translateText = async () => {
+                const inputText = textInput.value.trim();
+                if (!inputText) {
+                    animationDisplay.innerHTML = '<p style="color:red;">Please enter text or use voice input.</p>';
+                    emotionOutput.textContent = 'Awaiting Input';
+                    return;
+                }
+
+                translateBtn.disabled = true;
+                animationDisplay.innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
+                emotionOutput.textContent = 'Processing...';
+
+                const { gloss, emotion, signs } = getSimulatedSign(inputText);
+                
+                // Clear any previous steps
+                animationDisplay.innerHTML = '';
+                
+                // --- 1. Input Module Acknowledgment ---
+                updateDisplay(`Input Received: "${inputText.substring(0, 40)}..."`, 'simulation-step');
+
+                // --- 2. Emotion Detection Module Simulation (250ms) ---
+                await new Promise(resolve => setTimeout(resolve, 250));
+                updateDisplay(`2. Emotion Detection: ${emotion}`, 'simulation-step');
+                emotionOutput.textContent = emotion;
+
+                // --- 3. NLP Module Simulation (500ms) ---
+                await new Promise(resolve => setTimeout(resolve, 500));
+                updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${gloss}"`, 'simulation-step');
+
+                // --- 4. Animation Generator Module Simulation (750ms) ---
+                await new Promise(resolve => setTimeout(resolve, 750));
+                updateDisplay(`4. Animation Mapping: Mapped to signs: "${signs}"`, 'simulation-step');
+                
+                // --- 5. Output Module Final Render (500ms) ---
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const finalMessage = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color); margin-top: 15px;">✅ Translation Complete!</p>
+                                     <p>Sign Language Output for: **${gloss}**</p>
+                                     <p style="font-size: 0.9rem; color: #6c757d;">(Animation speed and facial cues adjusted for ${emotion.split(' ')[0]})</p>`;
+
+                animationDisplay.innerHTML += finalMessage; 
+                translateBtn.disabled = false;
+            };
+
+            // Event Listeners
+            translateBtn.addEventListener('click', translateText);
+
+            document.getElementById('voice-input-btn').addEventListener('click', () => {
+                // Simulate voice input
+                translateBtn.disabled = true;
+                animationDisplay.innerHTML = '<p style="color:#007bff; font-weight: bold;">🎤 Listening... (Simulated)</p>';
+                emotionOutput.textContent = 'Awaiting Transcription...';
+                
+                setTimeout(() => {
+                    const simulatedVoiceInput = "Hello, I am very happy today!";
+                    textInput.value = simulatedVoiceInput;
+                    animationDisplay.innerHTML = `<p style="color:var(--secondary-color); font-weight: 500;">✅ Voice Input Transcribed: "${simulatedVoiceInput.substring(0, 30)}..."</p>`;
+                    // Auto-start translation after simulated transcription
+                    translateText();
+                }, 1000); 
+            });
+        });
+    </script>
+</body>
+</html>

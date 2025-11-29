@@ -185,7 +185,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 20px;
             padding: 15px;
             border: 1px dashed #0056b3;
             border-radius: 8px;
@@ -249,29 +248,69 @@
         .simulation-step:last-of-type {
             border-bottom: none;
         }
-        
+
         /* --- Camera/Video Setup --- */
-        .camera-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+        .reverse-display-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
             margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .reverse-display-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         #camera-video {
             width: 100%;
-            max-width: 400px;
             border: 2px solid var(--detected-color);
             border-radius: 8px;
             transform: scaleX(-1); /* Mirror view for natural interaction */
             display: none; /* Hidden until camera starts */
+            background-color: #000;
+            min-height: 250px; /* Placeholder minimum height */
+        }
+        
+        .camera-placeholder {
+            width: 100%;
+            max-width: 400px;
+            min-height: 250px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+            text-align: center;
         }
         
         #camera-status {
             font-weight: bold;
             color: var(--listening-color);
+            margin-top: 10px;
         }
+
+        /* New output box for reverse translation */
+        #sign-detection-output-box {
+            background-color: #fff;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #gesture-status {
+            white-space: pre-wrap; /* Keeps formatting from JS output */
+            text-align: left;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+        }
+
 
         /* --- Other Sections --- */
         ol, ul {
@@ -328,7 +367,6 @@
             <div id="hero">
                 <h2>Bridging Communication Gaps with Intelligent Translation</h2>
                 <p>We propose a Text to Sign Language Image Animation Generation System that facilitates inclusive communication by converting text or voice inputs into animated sign language representations. This system is enhanced with **multimodal interaction** and **emotion-aware feedback** for a natural, responsive, and empathetic experience.</p>
-                <a href="#demo" class="cta-button">Start Communication</a>
             </div>
         </section>
 
@@ -371,23 +409,44 @@
             <!-- Reverse Translation (Sign -> Text/Voice) -->
             <section id="reverse-feature">
                 <h3>2. Reverse Translation (Sign $\rightarrow$ Text/Voice)</h3>
-                <p>Demonstration of the system's ability to detect **Hand Gestures** and **Facial Expressions** to convert sign language back into text and voice.</p>
+                <p>Demonstration of **Computer Vision** detecting Hand Gestures and Facial Expressions to generate text output.</p>
                 
-                <div class="camera-container">
-                    <button id="camera-input-btn" class="cta-button" style="background-color: var(--detected-color);">🎥 Start Sign Recognition (Camera Input)</button>
-                    <video id="camera-video" autoplay playsinline></video>
-                    <p id="camera-status">Camera Status: Off</p>
+                <div style="text-align: center; margin-bottom: 20px;">
+                     <button id="camera-input-btn" class="cta-button" style="background-color: var(--detected-color); margin: 0;">🎥 Start Sign Recognition (Camera Input)</button>
+                     <p id="camera-status">Camera Status: Off</p>
+                </div>
+                
+                <div class="reverse-display-grid">
                     
-                    <h4>Simulate Detected Emotion:</h4>
-                    <div class="reverse-controls">
-                        <button class="emotion-control-btn" data-emotion="neutral">😐 Neutral Face</button>
-                        <button class="emotion-control-btn" data-emotion="joyful">😊 Happy Face</button>
-                        <button class="emotion-control-btn" data-emotion="angry">😠 Angry Face</button>
+                    <!-- LEFT SIDE: Camera Screen / Input -->
+                    <div class="camera-container">
+                        <h4>Camera Input Stream</h4>
+                        <!-- Camera Screen Element -->
+                        <video id="camera-video" autoplay playsinline></video>
+                        
+                        <!-- Camera Placeholder -->
+                        <div class="camera-placeholder" id="camera-placeholder">
+                            Click 'Start Sign Recognition' to view input stream.
+                        </div>
+                        
+                        <!-- Emotion Controls -->
+                        <div style="width: 100%; text-align: center; margin-top: 10px;">
+                            <p style="font-weight: 600; margin-bottom: 5px;">Simulate Detected Emotion:</p>
+                            <div class="reverse-controls">
+                                <button class="emotion-control-btn" data-emotion="neutral">😐 Neutral Face</button>
+                                <button class="emotion-control-btn" data-emotion="joyful">😊 Happy Face</button>
+                                <button class="emotion-control-btn" data-emotion="angry">😠 Angry Face</button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div id="sign-detection-output" class="output-area" style="width: 100%; max-width: 500px; margin-top: 15px;">
-                        <h4 style="border-bottom: none;">Gesture/Sign Recognition Output</h4>
-                        <p id="gesture-status" style="color: var(--primary-color); font-weight: 500;">Awaiting camera start...</p>
+
+                    <!-- RIGHT SIDE: Detection Output / Simulation -->
+                    <div id="sign-detection-output-box">
+                        <h4>Detection Processing Output</h4>
+                        <p style="font-size: 0.9em; color: #555;">(Simulates real-time Computer Vision processing)</p>
+                        <div id="gesture-status">
+                            <p style="color: #6c757d; font-style: italic;">Gesture tracking will begin once the camera is active.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -411,6 +470,7 @@
                 <li>To develop a **Voice-to-Text Conversion** module using Automatic Speech Recognition (ASR).</li>
                 <li>To perform **Natural Language Processing (NLP)** to translate text into **Sign Language Gloss** (e.g., "I am happy" $\rightarrow$ "I FEEL HAPPY").</li>
                 <li>To map Gloss to a **Sign Language Database** to generate gesture animations.</li>
+                <li>To implement **Computer Vision** for detecting **Hand Gestures** and **Facial Expressions** for reverse translation.</li>
             </ul>
         </section>
 
@@ -464,6 +524,7 @@
             const languageSelect = document.getElementById('language-select');
             const cameraInputBtn = document.getElementById('camera-input-btn');
             const cameraVideo = document.getElementById('camera-video');
+            const cameraPlaceholder = document.getElementById('camera-placeholder');
             const cameraStatus = document.getElementById('camera-status');
             const gestureStatus = document.getElementById('gesture-status');
             const emotionControlBtns = document.querySelectorAll('.emotion-control-btn');
@@ -473,6 +534,14 @@
             let currentDetectedEmotion = 'neutral';
             let detectionInterval = null;
             let videoStream = null;
+
+            // --- Console Logging Setup (for debugging) ---
+            console.log("--- Application Start ---");
+            if (window.location.protocol !== 'https:') {
+                console.warn("Camera Blocked Warning: Accessing the camera requires HTTPS or localhost.");
+            }
+            console.log(`Initial language selected: ${languageSelect.value}`);
+
 
             // --- 1. Forward Translation (Text/Voice -> Sign) Logic ---
 
@@ -511,6 +580,7 @@
                     return;
                 }
 
+                console.log(`[Translate] Starting translation for: "${inputText}"`);
                 translateBtn.disabled = true;
                 voiceInputBtn.disabled = true;
                 animationDisplay.innerHTML = '<p style="font-weight: bold; color: var(--primary-color);">Starting Translation...</p>';
@@ -525,15 +595,18 @@
 
                 // --- 2. Emotion Detection Module Simulation (250ms) ---
                 await new Promise(resolve => setTimeout(resolve, 250));
+                console.log(`[Translate Step 2] Emotion Detected: ${emotion}`);
                 updateDisplay(`2. Emotion Detection (from Text/Voice): ${emotion}`, 'simulation-step');
                 emotionOutput.textContent = emotion;
 
                 // --- 3. NLP Module Simulation (500ms) ---
                 await new Promise(resolve => setTimeout(resolve, 500));
+                console.log(`[Translate Step 3] NLP Output Gloss: ${gloss}`);
                 updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${gloss}"`, 'simulation-step');
 
                 // --- 4. Animation Generator Module Simulation (750ms) ---
                 await new Promise(resolve => setTimeout(resolve, 750));
+                console.log(`[Translate Step 4] Animation Signs: ${signs}`);
                 updateDisplay(`4. Animation Mapping: Mapped to signs: ${signs}`, 'simulation-step');
                 
                 // --- 5. Output Module Final Render (500ms) ---
@@ -546,13 +619,14 @@
                 animationDisplay.innerHTML += finalMessage; 
                 translateBtn.disabled = false;
                 voiceInputBtn.disabled = false;
+                console.log("[Translate] Simulation finished.");
             };
 
             translateBtn.addEventListener('click', () => {
                 translateText(textInput.value);
             });
 
-            // Initialize Web Speech API
+            // --- Web Speech API (Voice Input) Logic ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             let recognition = null;
 
@@ -566,18 +640,21 @@
                     voiceInputBtn.classList.add('listening');
                     voiceInputBtn.textContent = '🔴 Listening... Speak Now!';
                     translateBtn.disabled = true;
+                    console.log(`[ASR] Recording started in language: ${recognition.lang}`);
                 };
 
                 recognition.onend = () => {
                     voiceInputBtn.classList.remove('listening');
                     voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
                     translateBtn.disabled = false;
+                    console.log("[ASR] Recording stopped.");
                 };
 
                 recognition.onresult = (event) => {
                     const speechResult = event.results[0][0].transcript;
                     textInput.value = speechResult;
                     animationDisplay.innerHTML = `<p style="color:var(--secondary-color); font-weight: 500;">✅ Voice Input Transcribed: "${speechResult.substring(0, 30)}..."</p>`;
+                    console.log(`[ASR Success] Transcribed text: "${speechResult}"`);
                 };
 
                 recognition.onerror = (event) => {
@@ -585,11 +662,13 @@
                     voiceInputBtn.textContent = '🎤 Use Voice Input (Speech Recognition)';
                     animationDisplay.innerHTML = `<p style="color: red;">Speech Recognition Error: ${event.error}. Please ensure microphone access is granted.</p>`;
                     translateBtn.disabled = false;
+                    console.error(`[ASR Error] Code: ${event.error}`);
                 };
 
                 // Language selection logic
                 languageSelect.addEventListener('change', () => {
                     recognition.lang = languageSelect.value;
+                    console.log(`[ASR Config] Language changed to: ${languageSelect.options[languageSelect.selectedIndex].text}`);
                 });
                 
                 // Set initial language
@@ -604,14 +683,16 @@
                     } catch (e) {
                         if (e.name !== 'InvalidStateError') {
                              animationDisplay.innerHTML = `<p style="color: red;">Microphone Error: ${e.message}</p>`;
+                             console.error(`[ASR Error] Microphone access failed: ${e.message}`);
                         }
                     }
                 });
 
             } else {
+                // Fallback if browser doesn't support Web Speech API
                 voiceInputBtn.disabled = true;
                 voiceInputBtn.textContent = 'Voice Not Supported';
-                animationDisplay.innerHTML = '<p style="color: red; margin-top: 10px;">Warning: Web Speech API not supported. Only text input works.</p>';
+                console.warn("Web Speech API not supported in this browser. Voice input is disabled.");
             }
             
             // --- 2. Reverse Translation (Sign -> Text) Logic ---
@@ -625,6 +706,7 @@
                     // Update button appearance
                     emotionControlBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
+                    console.log(`[Emotion Control] User set detected emotion to: ${currentDetectedEmotion}`);
                 });
             });
             // Set initial state
@@ -643,65 +725,77 @@
                         detectionInterval = null;
                     }
                     cameraVideo.style.display = 'none';
+                    cameraPlaceholder.style.display = 'flex';
                     cameraStatus.textContent = 'Camera Status: Off';
-                    cameraStatus.style.color = var(--listening-color);
+                    cameraStatus.style.color = 'var(--listening-color)';
                     cameraInputBtn.textContent = '🎥 Start Sign Recognition (Camera Input)';
-                    gestureStatus.textContent = 'Awaiting camera start...';
+                    gestureStatus.innerHTML = '<p style="color: #6c757d; font-style: italic;">Gesture tracking will begin once the camera is active.</p>';
+                    console.log("[Camera] Camera stopped.");
                     return;
                 }
+                
+                // --- SIMULATE SUCCESSFUL CAMERA START TO SHOW UI ---
+                console.log("[Camera] Starting camera simulation to bypass HTTPS requirement...");
+                
+                // 1. Update UI to Active State
+                cameraVideo.style.display = 'block';
+                cameraPlaceholder.style.display = 'none';
+                cameraStatus.textContent = 'Camera Status: Active (Simulated Stream)';
+                cameraStatus.style.color = 'var(--secondary-color)';
+                cameraInputBtn.textContent = '⏹️ Stop Camera';
 
-                // Start camera
+                // 2. Start simulation loop immediately
+                startDetectionSimulation();
+
+                // 3. Fallback for real stream (if available) - This attempts to show the real stream
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(stream => {
                         videoStream = stream;
                         cameraVideo.srcObject = stream;
-                        cameraVideo.style.display = 'block';
-                        cameraStatus.textContent = 'Camera Status: Active';
-                        cameraStatus.style.color = var(--secondary-color);
-                        cameraInputBtn.textContent = '⏹️ Stop Camera';
-
-                        // Start simulation detection loop
-                        startDetectionSimulation();
+                        cameraStatus.textContent = 'Camera Status: Active (Live Stream)';
+                        console.log("[Camera] Live stream successfully accessed.");
                     })
                     .catch(err => {
-                        console.error("Camera access error: ", err);
-                        cameraStatus.textContent = 'Camera Error: Please allow microphone/camera access.';
-                        cameraStatus.style.color = 'red';
+                        // If live stream fails, we stay in the simulated UI state (which is the goal)
+                        console.warn(`[Camera Fallback] Live stream failed (${err.name}). Displaying simulated view.`);
                     });
             });
 
             const startDetectionSimulation = () => {
                 const detectedSigns = [
-                    { sign: "HELLO", text: "Hello / Namaste / Vanakkam" },
-                    { sign: "GOOD", text: "Good / Acchha / Nallathu" },
-                    { sign: "THANKS", text: "Thank you / Shukriya / Nandri" },
+                    { sign: "HELLO (GREET)", text: "Hello, how are you today?" },
+                    { sign: "THANKS (APPRECIATE)", text: "Thank you very much." },
+                    { sign: "HELP (REQUEST)", text: "I need some help." },
                 ];
                 let signIndex = 0;
                 
                 if (detectionInterval) clearInterval(detectionInterval);
 
                 detectionInterval = setInterval(() => {
-                    // Simulate motion tracking (most of the time)
-                    const isTracking = Math.random() > 0.3; // 70% of the time, tracking motion
+                    // Simulate motion tracking
+                    const isTracking = Math.random() > 0.4; // 60% of the time, tracking motion
 
                     if (isTracking) {
-                        gestureStatus.textContent = `Tracking Complex Motion... (Detected Emotion: ${currentDetectedEmotion.toUpperCase()})`;
-                        gestureStatus.style.color = '#757575';
+                        gestureStatus.innerHTML = `
+                            <p style="color: #757575; margin: 0;">Status: Tracking Hand and Facial Movement...</p>
+                            <p style="color: #00bcd4; margin: 0; font-weight: 600;">Detected Emotion: ${currentDetectedEmotion.toUpperCase()}</p>
+                        `;
+                        console.log(`[Detection Sim] State: Tracking, Emotion: ${currentDetectedEmotion}`);
                     } else {
-                        // Simulate successful recognition (30% of the time, or when holding sign)
+                        // Simulate successful recognition
                         const currentSign = detectedSigns[signIndex];
-
-                        // Final Simulated Output Text
-                        const outputText = `${currentSign.text}. [Emotion: ${currentDetectedEmotion.toUpperCase()}]`;
+                        
+                        // Use the current user-selected emotion in the output
+                        const emotionText = currentDetectedEmotion.toUpperCase();
+                        const outputText = `${currentSign.text}. [Emotion: ${emotionText}]`;
 
                         gestureStatus.innerHTML = `
-                            **Sign Recognized:** ${currentSign.sign}
-                            <br>
-                            **Emotion Detected:** ${currentDetectedEmotion.toUpperCase()}
-                            <br>
-                            **Text Output:** "${outputText.substring(0, 30)}..."
+                            <p style="font-weight: bold; color: var(--primary-color); margin-bottom: 5px;">✅ Sign Recognized and Translated</p>
+                            <p style="margin: 0;">**Sign:** ${currentSign.sign}</p>
+                            <p style="margin: 0;">**Emotion:** ${emotionText}</p>
+                            <p style="margin: 0;">**Text Output:** "${outputText.substring(0, 30)}..."</p>
                         `;
-                        gestureStatus.style.color = var(--detected-color);
+                        console.log(`[Detection Sim] Recognized Sign: ${currentSign.sign} with Emotion: ${emotionText}`);
                         
                         // Cycle to next simulated sign
                         signIndex = (signIndex + 1) % detectedSigns.length;

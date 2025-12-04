@@ -1,0 +1,15 @@
+<div id="image-container"></div>
+
+<script>
+const images = ['A.png', 'B.png', 'C.png']; // use .png here
+const container = document.getElementById('image-container');
+
+images.forEach(imgName => {
+    const img = document.createElement('img');
+    img.src = `https://raw.githubusercontent.com/username/repo/main/images/${imgName}`; // update GitHub URL
+    img.alt = imgName;
+    img.style.width = '200px';
+    img.style.margin = '10px';
+    container.appendChild(img);
+});
+</script>

@@ -150,7 +150,7 @@
             outline: none;
         }
 
-        #translate-btn, #voice-input-btn, #camera-input-btn {
+        #translate-btn, #voice-input-btn {
             background-color: var(--highlight-color);
             color: #333;
             border: none;
@@ -168,7 +168,7 @@
             color: white;
         }
 
-        #translate-btn:hover:not(:disabled), #voice-input-btn:hover:not(:disabled), #camera-input-btn:hover:not(:disabled) {
+        #translate-btn:hover:not(:disabled), #voice-input-btn:hover:not(:disabled) {
             background-color: #e0a800;
             transform: translateY(-1px);
         }
@@ -278,23 +278,21 @@
         
         /* Fingerspelling Output */
         #fingerspell-output {
-            display: flex;
-            flex-wrap: nowrap;
-            justify-content: center;
-            align-items: center;
-            min-height: 80px;
+            min-height: 100px;
             margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 8px;
         }
 
-        #fingerspell-output span {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
+        #fingerspell-output img {
+            width: 80px; /* Standard size for one sign image */
+            height: 80px;
+            object-fit: contain;
             border: 2px solid var(--primary-color);
-            border-radius: 5px;
-            padding: 5px 10px;
-            margin: 0 4px;
-            display: inline-block;
+            border-radius: 8px;
             background-color: #fff;
         }
         
@@ -303,9 +301,9 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.9); }
-            50% { transform: scale(1.1); box-shadow: 0 0 10px var(--highlight-color); }
-            100% { transform: scale(1.0); }
+            0% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1.0; box-shadow: 0 0 10px var(--highlight-color); }
+            100% { transform: scale(1.0); opacity: 1.0; }
         }
 
 
@@ -440,8 +438,8 @@
                 <h3>Sign Language Animation Output</h3>
                 
                 <div id="fingerspell-output">
-                    <!-- Dynamic fingerspelling sequence appears here -->
-                    <p style="color: #6c757d;">(Fingerspelling animation sequence will appear here)</p>
+                    <!-- Dynamic fingerspelling image sequence appears here -->
+                    <p style="color: #6c757d;">(Fingerspelling image sequence will appear here)</p>
                 </div>
                 
                 <div id="animation-display">
@@ -515,7 +513,7 @@
             
             <!-- IMAGE FLOW CHART ELEMENT - SOURCE IS NOW CORRECTED TO download.jpg -->
             <div class="flowchart-image">
-                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart';" >
+                <img src="images/download.jpg" alt="System Architecture Flowchart" onerror="this.onerror=null; this.src='https://placehold.co/800x350/e0f7fa/0056b3?text=System+Architecture+Flowchart+Image+Not+Found';" >
                 <p>Fig. 1. Flow Chart: Showing Input $\rightarrow$ NLP $\rightarrow$ Emotion Detection $\rightarrow$ Animation Generator $\rightarrow$ Output Flow</p>
             </div>
 
@@ -563,6 +561,7 @@
             const cameraPlaceholder = document.getElementById('camera-placeholder');
             const cameraStatus = document.getElementById('camera-status');
             const gestureStatus = document.getElementById('gesture-status');
+            const emotionControlBtns = document.querySelectorAll('.emotion-control-btn');
             const emotionOutput = document.getElementById('emotion-output');
             const fingerspellOutput = document.getElementById('fingerspell-output');
 
@@ -570,6 +569,21 @@
             let detectionInterval = null;
             let captureTimeout = null;
             let videoStream = null;
+
+            // --- FINGERSPELLING IMAGE PATHS (Using provided file names) ---
+            // NOTE: You must upload these files (A.jpg, B.jpg, etc.) to the 'images/' folder in GitHub.
+            const ASL_IMAGE_PATHS = {
+                'A': 'images/A.jpg', 'B': 'images/B.jpg', 'C': 'images/C.jpg', 'D': 'images/D.jpg', 'E': 'images/E.jpg',
+                'F': 'images/F.jpg', 'G': 'images/G.jpg', 'H': 'images/H.jpg', 'I': 'images/I.jpg', 'J': 'images/J.jpg',
+                'K': 'images/K.jpg', 'L': 'images/L.jpg', 'M': 'images/M.jpg', 'N': 'images/N.jpg', 'O': 'images/O.jpg',
+                'P': 'images/P.jpg', 'Q': 'images/Q.jpg', 'R': 'images/R.jpg', 'S': 'images/S.jpg', 'T': 'images/T.jpg',
+                'U': 'images/U.jpg', 'V': 'images/V.jpg', 'W': 'images/W.jpg', 'X': 'images/X.jpg', 'Y': 'images/Y.jpg',
+                'Z': 'images/Z.jpg',
+                // Special characters (using number placeholders you provided, assumed to be numbers 1-9)
+                '1': 'images/1.jpg', '2': 'images/2.jpg', '3': 'images/3.jpg', '4': 'images/4.jpg', '5': 'images/5.jpg',
+                '6': 'images/6.jpg', '7': 'images/7.jpg', '8': 'images/8.jpg', '9': 'images/9.jpg',
+                ' ': 'https://placehold.co/80x80/ffffff/ffffff?text=' // Placeholder for space
+            };
 
             // --- 1. Forward Translation (Text/Voice -> Sign) Logic ---
 
@@ -602,38 +616,36 @@
             };
             
             const simulateFingerspelling = (word) => {
-                fingerspellOutput.innerHTML = '';
+                fingerspellOutput.innerHTML = '<p style="color: #6c757d;">Rendering sequence...</p>';
                 const letters = word.toUpperCase().split('');
                 let delay = 0;
-                
-                letters.forEach((letter, index) => {
-                    setTimeout(() => {
-                        const span = document.createElement('span');
-                        span.textContent = letter;
-                        span.classList.add('animated-sign');
-                        
-                        // Clear previous sign if not the first letter
-                        if (index > 0) {
-                            const prevSpan = fingerspellOutput.lastChild;
-                            if (prevSpan) fingerspellOutput.removeChild(prevSpan);
-                        }
-                        fingerspellOutput.appendChild(span);
+                let currentWordContainer = document.createElement('div');
+                fingerspellOutput.appendChild(currentWordContainer);
 
-                        // Clear the sign after a short display time if it's not the last one
-                        if (index < letters.length - 1) {
-                            setTimeout(() => {
-                                if (fingerspellOutput.lastChild === span) {
-                                    fingerspellOutput.removeChild(span);
-                                }
-                            }, 450); 
-                        }
+                letters.forEach((letter) => {
+                    const signPath = ASL_IMAGE_PATHS[letter];
+                    if (!signPath) return; // Skip unknown characters
+                    
+                    setTimeout(() => {
+                        // Create image element
+                        const img = document.createElement('img');
+                        img.src = signPath;
+                        img.alt = `Sign for ${letter}`;
+                        img.classList.add('animated-sign');
                         
+                        // Append to the current word container
+                        currentWordContainer.appendChild(img);
+
+                        // If it's a space, create a new container for the next word
+                        if (letter === ' ') {
+                            currentWordContainer = document.createElement('div');
+                            fingerspellOutput.appendChild(currentWordContainer);
+                        }
                     }, delay);
                     delay += 500; // 500ms delay per sign
                 });
                 return delay;
             };
-
 
             const translateText = async (inputText) => {
                 if (!inputText || inputText.trim() === "") {
@@ -641,6 +653,23 @@
                     emotionOutput.textContent = 'Awaiting Input';
                     return;
                 }
+                
+                // --- Single Letter Fingerspelling Check ---
+                const singleLetter = inputText.trim().toUpperCase();
+                if (singleLetter.length === 1 && ASL_IMAGE_PATHS[singleLetter]) {
+                    fingerspellOutput.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = ASL_IMAGE_PATHS[singleLetter];
+                    img.alt = `Sign for ${singleLetter}`;
+                    img.classList.add('animated-sign');
+                    fingerspellOutput.appendChild(img);
+                    
+                    document.getElementById('animation-display').innerHTML = `<p style="font-size: 1.2rem; font-weight: bold; color: var(--secondary-color);">✅ Single Sign Output: ${singleLetter}</p>`;
+                    emotionOutput.textContent = 'Neutral 👤';
+                    return;
+                }
+                
+                // --- Full Sentence Simulation ---
 
                 translateBtn.disabled = true;
                 voiceInputBtn.disabled = true;
@@ -664,11 +693,11 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 updateDisplay(`3. NLP & Gloss Conversion: → Gloss: "${result.gloss}"`, 'simulation-step');
 
-                // 4. Animation Generator Module Simulation (750ms)
+                // 4. Animation Mapping: Use the main keyword for fingerspelling
                 await new Promise(resolve => setTimeout(resolve, 750));
                 updateDisplay(`4. Animation Mapping: Generating image sequence for: ${result.keyword}...`, 'simulation-step');
                 
-                // 5. Simulate Fingerspelling Animation
+                // 5. Simulate Fingerspelling Animation (Visual Output)
                 const animationDuration = simulateFingerspelling(result.keyword);
                 await new Promise(resolve => setTimeout(resolve, animationDuration + 500));
 
@@ -813,7 +842,6 @@
                 let signIndex = 0;
                 let countdownSeconds = TIMEOUT_DURATION / 1000;
 
-                const finalOutputText = `The speaker signed "THANKS" with a ${currentDetectedEmotion.toUpperCase()} expression.`;
                 
                 if (detectionInterval) clearInterval(detectionInterval);
                 if (captureTimeout) clearTimeout(captureTimeout);
@@ -822,7 +850,6 @@
                                         <p class="final-text">**Interpreted Sentence:** "Thank you."</p>
                                         <p style="font-size: 0.9rem; color: #6c757d;">(Gloss: THANK YOU, Expression: ${currentDetectedEmotion.toUpperCase()})</p>`;
 
-                // Timeout to stop capture
                 captureTimeout = setTimeout(() => {
                     clearInterval(detectionInterval);
                     cameraInputBtn.disabled = false;
@@ -835,7 +862,6 @@
                 cameraVideo.style.borderColor = 'var(--listening-color)';
 
 
-                // Interval to simulate detection frames
                 detectionInterval = setInterval(() => {
                     countdownSeconds = Math.max(0, countdownSeconds - 1);
                     cameraStatus.textContent = `Camera Status: Capturing... (${countdownSeconds}s remaining)`;
